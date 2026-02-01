@@ -137,7 +137,7 @@ async def main():
         save_text(msg.text)
         await event.reply("✅ Text promo disimpan")
 
-  @client.on(NewMessage(pattern='/startsend'))
+    @client.on(NewMessage(pattern='/startsend'))
     async def start_send(event):
         global send_task
 
