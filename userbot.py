@@ -48,6 +48,36 @@ TARGET_GROUPS = load_groups()
 # AUTO SEND
 # =====================
 async def auto_send(client):
+    print("🚀 AUTO SEND TASK STARTED")
+
+    while True:
+        try:
+            text = load_text()
+            print("📄 Text terbaca:", repr(text))
+
+            if not text.strip():
+                print("⚠️ Text kosong, nunggu...")
+                await asyncio.sleep(DELAY)
+                continue
+
+            if not TARGET_GROUPS:
+                print("⚠️ Tidak ada grup target")
+                await asyncio.sleep(DELAY)
+                continue
+
+            for gid in list(TARGET_GROUPS):
+                print(f"➡️ Kirim ke {gid}")
+                await client.send_message(gid, text)
+                print(f"✅ BERHASIL ke {gid}")
+                await asyncio.sleep(1)
+
+            print(f"⏸️ Nunggu {DELAY} detik")
+            await asyncio.sleep(DELAY)
+
+        except Exception as e:
+            print("💥 AUTO SEND ERROR:", e)
+            await asyncio.sleep(5)
+
     global send_task
 
     while True:
@@ -107,15 +137,24 @@ async def main():
         save_text(msg.text)
         await event.reply("✅ Text promo disimpan")
 
-    @client.on(NewMessage(pattern='/startsend'))
+  @client.on(NewMessage(pattern='/startsend'))
     async def start_send(event):
         global send_task
-        if send_task:
+
+        if send_task and not send_task.done():
             await event.reply('⚠️ Sudah berjalan')
             return
 
         send_task = asyncio.create_task(auto_send(client))
-        await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
+        await event.reply('▶️ Auto send dimulai')
+
+            global send_task
+            if send_task:
+                await event.reply('⚠️ Sudah berjalan')
+                return
+
+            send_task = asyncio.create_task(auto_send(client))
+            await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
 
     @client.on(NewMessage(pattern='/stopsend'))
     async def stop_send(event):
