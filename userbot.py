@@ -139,7 +139,7 @@ async def main():
 
     @client.on(NewMessage(pattern='/startsend'))
     async def start_send(event):
-        
+            
         global send_task
         if send_task and not send_task.done():
             await event.reply('⚠️ Sudah berjalan')
@@ -147,15 +147,14 @@ async def main():
 
         send_task = asyncio.create_task(auto_send(client))
         await event.reply('▶️ Auto send dimulai')
-
-            global send_task
+        global send_task
             
-            if send_task:
-                await event.reply('⚠️ Sudah berjalan')
-                return
+        if send_task:
+            await event.reply('⚠️ Sudah berjalan')
+            return
 
-            send_task = asyncio.create_task(auto_send(client))
-            await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
+        send_task = asyncio.create_task(auto_send(client))
+        await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
 
     @client.on(NewMessage(pattern='/stopsend'))
     async def stop_send(event):
