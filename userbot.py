@@ -20,11 +20,8 @@ send_task = None
 def load_groups():
     if not os.path.exists(GROUP_FILE):
         return set()
-    try:
-        with open(GROUP_FILE, 'r') as f:
-            return set(json.load(f).get('groups', []))
-    except:
-        return set()
+    with open(GROUP_FILE, 'r') as f:
+        return set(json.load(f).get('groups', []))
 
 def save_groups(groups):
     with open(GROUP_FILE, 'w') as f:
@@ -53,48 +50,28 @@ async def auto_send(client):
     while True:
         try:
             text = load_text()
-            print("📄 Text terbaca:", repr(text))
+            print("📄 Text:", repr(text))
 
             if not text.strip():
-                print("⚠️ Text kosong, nunggu...")
                 await asyncio.sleep(DELAY)
                 continue
 
             if not TARGET_GROUPS:
-                print("⚠️ Tidak ada grup target")
+                print("⚠️ Tidak ada grup")
                 await asyncio.sleep(DELAY)
                 continue
 
             for gid in list(TARGET_GROUPS):
                 print(f"➡️ Kirim ke {gid}")
                 await client.send_message(gid, text)
-                print(f"✅ BERHASIL ke {gid}")
+                print(f"✅ Berhasil ke {gid}")
                 await asyncio.sleep(1)
 
-            print(f"⏸️ Nunggu {DELAY} detik")
             await asyncio.sleep(DELAY)
 
         except Exception as e:
-            print("💥 AUTO SEND ERROR:", e)
+            print("💥 ERROR AUTO SEND:", e)
             await asyncio.sleep(5)
-
-    global send_task
-
-    while True:
-        text = load_text()
-
-        if not text.strip():
-            await asyncio.sleep(DELAY)
-            continue
-
-        for gid in list(TARGET_GROUPS):
-            try:
-                await client.send_message(gid, text)
-                await asyncio.sleep(1)
-            except Exception as e:
-                print("Gagal kirim:", e)
-
-        await asyncio.sleep(DELAY)
 
 
 # =====================
@@ -117,12 +94,6 @@ async def main():
         save_groups(TARGET_GROUPS)
         await event.reply('✅ Grup ditambahkan')
 
-    @client.on(NewMessage(pattern='/removegroup'))
-    async def remove_group(event):
-        TARGET_GROUPS.discard(event.chat_id)
-        save_groups(TARGET_GROUPS)
-        await event.reply('❌ Grup dihapus')
-
     @client.on(NewMessage(pattern='/listgroup'))
     async def list_group(event):
         await event.reply("\n".join(map(str, TARGET_GROUPS)) or "Kosong")
@@ -132,57 +103,37 @@ async def main():
         if not event.is_reply:
             await event.reply("Reply pesan promo dengan /settext")
             return
-
         msg = await event.get_reply_message()
         save_text(msg.text)
-        await event.reply("✅ Text promo disimpan")
+        await event.reply("✅ Text disimpan")
 
-@client.on(NewMessage(pattern='/startsend'))
-async def start_send(event):
-    global send_task
-
-    if send_task and not send_task.done():
-        await event.reply('⚠️ Sudah berjalan')
-        return
-
-    send_task = asyncio.create_task(auto_send(client))
-    await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
-
+    @client.on(NewMessage(pattern='/startsend'))
     async def start_send(event):
-            
         global send_task
-        if send_task and not send_task.done():
-            await event.reply('⚠️ Sudah berjalan')
-            return
 
-        send_task = asyncio.create_task(auto_send(client))
-        await event.reply('▶️ Auto send dimulai')
-        
-        global send_task
-            
-        if send_task:
+        if send_task and not send_task.done():
             await event.reply('⚠️ Sudah berjalan')
             return
 
         send_task = asyncio.create_task(auto_send(client))
         await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
 
-@client.on(NewMessage(pattern='/stopsend'))
-async def stop_send(event):
-    global send_task
-    if send_task:
-        send_task.cancel()
-        send_task = None
-        await event.reply('⛔ Auto send dihentikan')
+    @client.on(NewMessage(pattern='/stopsend'))
+    async def stop_send(event):
+        global send_task
+        if send_task:
+            send_task.cancel()
+            send_task = None
+            await event.reply('⛔ Auto send dihentikan')
 
-@client.on(NewMessage(pattern=r'^/setdelay'))
-async def set_delay(event):
-    global DELAY
-    try:
-        DELAY = int(event.raw_text.split()[1])
-        await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
-    except:
-        await event.reply('Format: /setdelay 30')
+    @client.on(NewMessage(pattern=r'^/setdelay'))
+    async def set_delay(event):
+        global DELAY
+        try:
+            DELAY = int(event.raw_text.split()[1])
+            await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
+        except:
+            await event.reply('Format: /setdelay 30')
 
     await client.run_until_disconnected()
 
