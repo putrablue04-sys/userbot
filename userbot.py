@@ -1,3 +1,4 @@
+print("FILE BARU KELOAD")
 import asyncio, json, os
 from telethon import TelegramClient
 from telethon.events import NewMessage
