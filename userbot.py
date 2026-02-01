@@ -167,22 +167,22 @@ async def start_send(event):
         send_task = asyncio.create_task(auto_send(client))
         await event.reply(f'▶️ Auto send dimulai\nDelay {DELAY} detik')
 
-    @client.on(NewMessage(pattern='/stopsend'))
-    async def stop_send(event):
-        global send_task
-        if send_task:
-            send_task.cancel()
-            send_task = None
-            await event.reply('⛔ Auto send dihentikan')
+@client.on(NewMessage(pattern='/stopsend'))
+async def stop_send(event):
+    global send_task
+    if send_task:
+        send_task.cancel()
+        send_task = None
+        await event.reply('⛔ Auto send dihentikan')
 
-    @client.on(NewMessage(pattern=r'^/setdelay'))
-    async def set_delay(event):
-        global DELAY
-        try:
-            DELAY = int(event.raw_text.split()[1])
-            await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
-        except:
-            await event.reply('Format: /setdelay 30')
+@client.on(NewMessage(pattern=r'^/setdelay'))
+async def set_delay(event):
+    global DELAY
+    try:
+        DELAY = int(event.raw_text.split()[1])
+        await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
+    except:
+        await event.reply('Format: /setdelay 30')
 
     await client.run_until_disconnected()
 
