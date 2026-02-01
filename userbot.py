@@ -149,6 +149,7 @@ async def main():
         await event.reply('▶️ Auto send dimulai')
 
             global send_task
+            
             if send_task:
                 await event.reply('⚠️ Sudah berjalan')
                 return
