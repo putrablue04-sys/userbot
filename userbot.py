@@ -131,13 +131,22 @@ async def main():
             await event.reply('⛔ Dihentikan')
 
     # ===================== DELAY
-    @client.on(NewMessage(pattern=r'/setdelay (\d+)'))
+    @client.on(NewMessage(pattern=r'^/setdelay'))
     async def set_delay(event):
-        global DELAY
-        DELAY = int(event.pattern_match.group(1))
-        await event.reply(f'⏱ Delay: {DELAY}')
+    global DELAY
 
-    await client.run_until_disconnected()
+    parts = event.raw_text.split()
+
+    if len(parts) < 2:
+        await event.reply('Format salah.\nContoh: /setdelay 30')
+        return
+
+    try:
+        DELAY = int(parts[1])
+        await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
+    except:
+        await event.reply('Angka delay tidak valid')
+
 
 
 if __name__ == '__main__':
