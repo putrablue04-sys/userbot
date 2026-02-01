@@ -133,19 +133,19 @@ async def main():
     # ===================== DELAY
     @client.on(NewMessage(pattern=r'^/setdelay'))
     async def set_delay(event):
-    global DELAY
+        global DELAY
 
-    parts = event.raw_text.split()
+        parts = event.raw_text.split()
 
-    if len(parts) < 2:
-        await event.reply('Format salah.\nContoh: /setdelay 30')
-        return
+        if len(parts) < 2:
+            await event.reply('Format salah.\nContoh: /setdelay 30')
+            return
 
-    try:
-        DELAY = int(parts[1])
-        await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
-    except:
-        await event.reply('Angka delay tidak valid')
+        try:
+            DELAY = int(parts[1])
+            await event.reply(f'⏱ Delay diubah ke {DELAY} detik')
+        except:
+            await event.reply('Angka delay tidak valid')
 
 
 
