@@ -23,15 +23,18 @@ def load_groups():
     with open(GROUP_FILE, 'r') as f:
         return set(json.load(f).get('groups', []))
 
+
 def save_groups(groups):
     with open(GROUP_FILE, 'w') as f:
         json.dump({"groups": list(groups)}, f)
+
 
 def load_text():
     if not os.path.exists(TEXT_FILE):
         return ""
     with open(TEXT_FILE, 'r', encoding='utf-8') as f:
         return f.read()
+
 
 def save_text(text):
     with open(TEXT_FILE, 'w', encoding='utf-8') as f:
@@ -50,27 +53,34 @@ async def auto_send(client):
     while True:
         try:
             text = load_text()
-            print("📄 Text:", repr(text))
 
             if not text.strip():
                 await asyncio.sleep(DELAY)
                 continue
 
             if not TARGET_GROUPS:
-                print("⚠️ Tidak ada grup")
                 await asyncio.sleep(DELAY)
                 continue
 
             for gid in list(TARGET_GROUPS):
-                print(f"➡️ Kirim ke {gid}")
-                await client.send_message(gid, text)
-                print(f"✅ Berhasil ke {gid}")
-                await asyncio.sleep(1)
+                try:
+                    print(f"➡️ Kirim ke {gid}")
+                    await client.send_message(gid, text)
+                    print(f"✅ Berhasil ke {gid}")
+                    await asyncio.sleep(1)
+
+                except Exception as e:
+                    if "banned from sending messages" in str(e).lower():
+                        print(f"⛔ DIBAN di {gid}, hapus dari list")
+                        TARGET_GROUPS.discard(gid)
+                        save_groups(TARGET_GROUPS)
+                    else:
+                        print(f"💥 ERROR ke {gid}:", e)
 
             await asyncio.sleep(DELAY)
 
         except Exception as e:
-            print("💥 ERROR AUTO SEND:", e)
+            print("💥 ERROR LOOP:", e)
             await asyncio.sleep(5)
 
 
@@ -81,7 +91,11 @@ async def main():
     global send_task, DELAY
 
     client = TelegramClient('railway_session', api_id, api_hash)
-    await client.start()
+    await client.connect()
+
+    if not await client.is_user_authorized():
+        raise Exception("❌ Session belum login. Login dulu di lokal!")
+
     print("🔥 Userbot promosi AKTIF")
 
     @client.on(NewMessage(pattern='/ping'))
@@ -112,7 +126,7 @@ async def main():
         global send_task
 
         if send_task and not send_task.done():
-            await event.reply('⚠️ Sudah berjalan')
+            await event.reply('⚠️ Auto send sudah berjalan')
             return
 
         send_task = asyncio.create_task(auto_send(client))
@@ -139,7 +153,7 @@ async def main():
 
 
 # =====================
-# ENTRY POINT
+# ENTRY
 # =====================
 if __name__ == "__main__":
     asyncio.run(main())
